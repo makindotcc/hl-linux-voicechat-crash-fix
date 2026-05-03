@@ -16,6 +16,14 @@ games (CS 1.6, HL, TF2 Classic, GMod legacy, etc.) on Linux.
 
 **Probably not, but not zero.**
 
+Recommended precautions:
+
+- Use an alt Steam account
+- **Restart Steam before launching any other game** other than the
+  one you're voice-chatting in. The patch lives only in memory, so a
+  restart wipes it cleanly. Launching e.g. CS2 or TF2 with a patched
+  `steamclient.so` in memory is unnecessary risk.
+
 ## The crash
 
 Steam Voice's Speex-based decoder (function `sub_2709480` in
