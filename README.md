@@ -26,10 +26,10 @@ Recommended precautions:
 
 ## The crash
 
-Steam Voice's Speex-based decoder (function `sub_2709480` in
-`steamclient.so`) has an x86 PIC ABI bug: it clobbers the `ebx` register —
-which on i386 must hold `_GLOBAL_OFFSET_TABLE_` for PLT calls to work — and
-then calls `memmove` through the PLT.
+Steam Voice's Speex-based decoder in `steamclient.so` has an x86 PIC ABI
+bug: it clobbers the `ebx` register — which on i386 must hold
+`_GLOBAL_OFFSET_TABLE_` for PLT calls to work — and then calls `memmove`
+through the PLT.
 
 The PLT stub for `memmove` is:
 
@@ -106,9 +106,14 @@ Tested with a `steamclient.so` build with these offsets (the script
 sanity-checks the original bytes before writing — if they don't match it
 refuses to patch):
 
-- PLT stub jmp instruction at RVA `0xe1ad19`
-- `memmove` GOT.PLT slot at RVA `0x2d936fc`
+- PLT stub jmp instruction at RVA `0xe1af79`
+- `memmove` GOT.PLT slot at RVA `0x2d966fc`
 - Original bytes: `ff a3 38 b1 f4 ff`
 
 If Valve ships a new `steamclient.so` and the bytes change, you'll need to
-re-locate the offsets in Binary Ninja / Ghidra / IDA.
+re-locate the offsets in Binary Ninja / Ghidra / IDA. Quick recipe:
+
+1. Find the memmove PLT stub by signature `f3 0f 1e fb b9 e0 1e 00 00 ff a3`
+   (endbr32 + `mov ecx, 0x1ee0` + start of indirect `jmp [ebx+disp32]`).
+2. The jmp instruction RVA is `stub_start + 9`.
+3. The GOT.PLT slot RVA comes from `readelf -r steamclient.so | grep ' memmove@'`.

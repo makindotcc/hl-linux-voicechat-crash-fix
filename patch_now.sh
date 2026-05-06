@@ -38,7 +38,7 @@ BASE=$(grep steamclient.so /proc/$PID/maps | head -1 | cut -d- -f1)
 echo "[+] steamclient.so base: 0x$BASE"
 
 # Check whether the patch is already applied
-PATCH_ADDR=$((0x$BASE + 0xe1ad19))
+PATCH_ADDR=$((0x$BASE + 0xe1af79))
 BYTES=$(dd if=/proc/$PID/mem bs=1 count=1 skip=$PATCH_ADDR 2>/dev/null | xxd -p)
 if [ "$BYTES" = "e9" ]; then
     echo "[+] Patch already applied (first byte = 0xe9)"

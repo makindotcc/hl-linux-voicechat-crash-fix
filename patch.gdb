@@ -19,12 +19,12 @@ gdb.execute('set $BASE = ' + hex(base))
 print('[*] steamclient.so base = ' + hex(base))
 end
 
-set $GOT_SLOT = $BASE + 0x2d936fc
+set $GOT_SLOT = $BASE + 0x2d966fc
 set $MEMMOVE  = *(unsigned int*)$GOT_SLOT
 printf "[*] memmove resolved @ %#x = %#x\n", (unsigned int)$GOT_SLOT, $MEMMOVE
 
-# Patch site: jmp instruction inside the memmove PLT stub (BN 0xe2ad19)
-set $PATCH = $BASE + 0xe1ad19
+# Patch site: jmp instruction inside the memmove PLT stub (BN 0xe2af79)
+set $PATCH = $BASE + 0xe1af79
 
 # Show original bytes
 printf "[*] before: %02x %02x %02x %02x %02x %02x\n", \
