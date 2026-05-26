@@ -74,7 +74,7 @@ I don't plan to play cs 1.6 daily.
 
 ## Usage
 
-Requires `gdb`, root (for `ptrace`), and Linux.
+Requires `gdb`, `binutils` (`readelf`), root (for `ptrace`), and Linux.
 
 1. Start Steam, log in, wait for the client UI to be fully loaded.
 2. Run:
@@ -84,9 +84,11 @@ Requires `gdb`, root (for `ptrace`), and Linux.
 3. You should see:
    ```
    [+] Steam main PID: <PID>
-   [+] steamclient.so base: 0x...
-   [*] Patching via gdb...
-   [+] Patch applied successfully: e9XXXXXXXX90
+   [*] memmove GOT: offset=0x... runtime=0x... -> 0x...
+   [*] memmove PLT entry: vaddr=0x... runtime=0x... (index=...)
+   [*] before: ff a3 ...
+   [*] after:  e9 ... 90
+   [+] PLT patched. memmove calls now go directly to libc.
    ```
 4. Join your CS 1.6 / HL / GMod server and use voice chat.
 
@@ -94,26 +96,10 @@ The patch must be re-applied after every Steam restart (it's only in memory).
 
 ## Files
 
-- `patch.gdb` — the actual patch logic (gdb script, finds the steamclient
-  base from `/proc/PID/maps`, reads `memmove` from the GOT slot, rewrites
-  the PLT)
-- `patch_now.sh` — wrapper that locates the Steam process, sanity-checks
-  the bytes, runs gdb, and verifies the result
-
-## Compatibility
-
-Tested with a `steamclient.so` build with these offsets (the script
-sanity-checks the original bytes before writing — if they don't match it
-refuses to patch):
-
-- PLT stub jmp instruction at RVA `0xe1af79`
-- `memmove` GOT.PLT slot at RVA `0x2d966fc`
-- Original bytes: `ff a3 38 b1 f4 ff`
-
-If Valve ships a new `steamclient.so` and the bytes change, you'll need to
-re-locate the offsets in Binary Ninja / Ghidra / IDA. Quick recipe:
-
-1. Find the memmove PLT stub by signature `f3 0f 1e fb b9 e0 1e 00 00 ff a3`
-   (endbr32 + `mov ecx, 0x1ee0` + start of indirect `jmp [ebx+disp32]`).
-2. The jmp instruction RVA is `stub_start + 9`.
-3. The GOT.PLT slot RVA comes from `readelf -r steamclient.so | grep ' memmove@'`.
+- `patch.gdb` — the actual patch logic (gdb + Python). Automatically
+  resolves all offsets at runtime via `readelf -r` (memmove GOT slot),
+  `readelf -S` (.plt section address), and .rel.plt entry ordering
+  (PLT stub index). No hardcoded offsets — works across `steamclient.so`
+  versions.
+- `patch_now.sh` — wrapper that locates the Steam process, runs gdb,
+  and checks the result
