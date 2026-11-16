@@ -1,3 +1,6 @@
+# Crash is already fixed by valve.
+Apparently Valve has released a 64-bit version of steam and this crash no longer occurs.
+
 # cs16-fix
 
 > **⚠️ AI-generated** ⚠️
